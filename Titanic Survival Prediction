@@ -1,0 +1,45 @@
+# 1. Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# 2. Load the dataset
+train_df = pd.read_csv('train.csv')
+test_df = pd.read_csv('test.csv')
+
+# 3. Data Preprocessing
+
+# Fill missing values for 'Age' with median, 'Embarked' with mode, 'Fare' with median
+train_df['Age'].fillna(train_df['Age'].median(), inplace=True)
+train_df['Embarked'].fillna(train_df['Embarked'].mode()[0], inplace=True)
+test_df['Age'].fillna(test_df['Age'].median(), inplace=True)
+test_df['Fare'].fillna(test_df['Fare'].median(), inplace=True)
+test_df['Embarked'].fillna(test_df['Embarked'].mode()[0], inplace=True)
+
+# Convert 'Sex' and 'Embarked' to numeric
+for df in [train_df, test_df]:
+    df['Sex'] = df['Sex'].map({'male': 0, 'female': 1})
+    df['Embarked'] = df['Embarked'].map({'S': 0, 'C': 1, 'Q': 2})
+
+# Select features for prediction
+features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
+
+X = train_df[features]
+y = train_df['Survived']
+X_test = test_df[features]
+
+# 4. Split the training data for validation
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 5. Train the Logistic Regression model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# 6. Validate the model
+y_pred = model.predict(X_val)
+print("Validation Accuracy:", accuracy_score(y_val, y_pred))
+
+# 7. Make predictions on the test set
+test_predictions = model.predict(X_test)
